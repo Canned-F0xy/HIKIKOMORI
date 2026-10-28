@@ -3,6 +3,6 @@
   "description": "테스트다요 테스트에요~",
   "authors": [{ "name": "여우통조림", "id": "0" }],
   "main": "index.js",
-  "hash": "3",
+  "hash": "5",
   "vendetta": { "icon": "ic_invite_24px" }
 }
