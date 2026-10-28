@@ -18,7 +18,7 @@
 
   const ICON_COMPONENT_RE = /^(UserPlus|GroupPlus|UsersPlus|Invite)Icon/;
 
-  const DEBUG = false;
+  const DEBUG = true;
 
   let inviteAssetIds = new Set();
 
