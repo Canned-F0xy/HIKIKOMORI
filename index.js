@@ -2,12 +2,14 @@
   const { metro, patcher } = vendetta;
 
   const EXACT_LABELS = [
-    "초대", "초대하기", "멤버 초대", "친구 초대",
-    "서버에 초대하기", "서버로 초대하기", "멤버 초대하기", "친구 초대하기",
-    "invite", "invite members", "invite friends", "invite to server",
+    "초대", "초대하기", "멤버 초대", "친구 초대", "멤버 초대하기", "친구 초대하기",
+    "서버에 초대하기", "서버로 초대하기", "초대 링크 만들기",
+    "invite", "invite members", "invite friends", "invite to server", "create invite",
   ].map((k) => k.toLowerCase());
 
-  const A11Y_CONTAINS = ["초대", "invite"];
+  const A11Y_SUFFIXES = ["초대", "초대하기"];
+  const A11Y_PREFIXES = ["invite "];
+  const CHANNEL_WORDS = ["채널", "channel", "스레드", "thread", "포럼", "forum"];
 
   const ICON_ASSET_NAMES = [
     "UserPlusIcon", "GroupPlusIcon", "ic_invite_24px",
@@ -16,7 +18,7 @@
 
   const ICON_COMPONENT_RE = /^(UserPlus|GroupPlus|UsersPlus|Invite)Icon/;
 
-  const DEBUG = true;
+  const DEBUG = false;
 
   let inviteAssetIds = new Set();
 
@@ -45,6 +47,19 @@
     return type.displayName || type.name || type.type?.displayName || type.type?.name || "";
   }
 
+  function isChannelElement(props) {
+    return props.channel != null || props.channelId != null || props.thread != null;
+  }
+
+  function isInviteA11y(label) {
+    const n = label.trim().toLowerCase();
+    if (CHANNEL_WORDS.some((w) => n.includes(w))) return false;
+    if (EXACT_LABELS.includes(n)) return true;
+    if (A11Y_SUFFIXES.some((s) => n.endsWith(s))) return true;
+    if (A11Y_PREFIXES.some((p) => n.startsWith(p))) return true;
+    return false;
+  }
+
   function shouldHide(type, props) {
     const name = typeName(type);
     if (name && ICON_COMPONENT_RE.test(name)) {
@@ -53,6 +68,7 @@
     }
 
     if (!props || typeof props !== "object") return false;
+    if (isChannelElement(props)) return false;
 
     for (const key of ["label", "text", "title"]) {
       const v = props[key];
@@ -64,9 +80,8 @@
 
     const a11y = props.accessibilityLabel ?? props["aria-label"];
     if (typeof a11y === "string") {
-      const n = a11y.toLowerCase();
-      if (DEBUG && /초대|invite/.test(n)) console.log(`[HideInvite] a11y: "${a11y}"`);
-      if (A11Y_CONTAINS.some((k) => n.includes(k))) return true;
+      if (DEBUG && /초대|invite/i.test(a11y)) console.log(`[HideInvite] a11y: "${a11y}"`);
+      if (isInviteA11y(a11y)) return true;
     }
 
     for (const key of ["icon", "source", "iconSource"]) {
